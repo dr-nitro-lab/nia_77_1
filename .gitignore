@@ -155,5 +155,12 @@ AP_F02_00263.mid
 AP_F02_00263.wav
 *.xlsx
 *.json
+!classJson/*.json
 *.mid
 *.wav
+
+# VS Code
+.vscode/
+
+# testing
+check_integrity.ipynb
