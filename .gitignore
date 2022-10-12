@@ -160,11 +160,11 @@ AP_F02_00263.wav
 
 # exception for update_table.py
 !genreCode2Major.json
+!genreCode2Minor.json
 !genreCode2Name.json
 !instCode2Major.json
 !instCode2Minor.json
 !instCode2Name.json
-
 # VS Code
 .vscode/
 

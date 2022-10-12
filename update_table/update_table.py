@@ -12,9 +12,9 @@ from json_utils import json2list
 
 def arg_parser():
     parser = ArgumentParser()
-    parser.add_argument("--dataset", "-d", type=str, default="C:\\Users\\KSW\\Desktop\\Projects\\학부연구생\\220924")
+    parser.add_argument("--dataset", "-d", type=str, default="220924")
     parser.add_argument("--cls_json", "-c", type=str, default="classJson")
-    parser.add_argument("--excel_path", "-e", type=str, default=".")
+    parser.add_argument("--excel_path", "-e", type=str, default="220924")
 
     config = parser.parse_args()
     return config
@@ -41,7 +41,7 @@ def update_table(
     inst_nm = classJsons["instCode2Name"].values()
 
     # define main DataFrame
-    # col이 악기코드, row가 장르코드인 DataFrame 생성
+    # col이 악기 코드, row가 장르 코드인 DataFrame 생성
     table = pd.DataFrame(columns=inst_cd, index=genre_cd)
 
 
@@ -76,17 +76,18 @@ def update_table(
                 classJsons["instCode2Name"].keys()):
         idx.append((M,m,n,c))
 
-    table.columns = pd.MultiIndex.from_tuples(idx, names=["대분류","소분류","악기","악기코드"])
+    table.columns = pd.MultiIndex.from_tuples(idx, names=["중분류","소분류","악기","악기코드"])
 
     # Row Multi Index 생성
     table["대분류"]=classJsons["genreCode2Major"].values()
+    table["중분류"]=classJsons["genreCode2Minor"].values()
     table["소분류(Genre)"]=classJsons["genreCode2Name"].values()
     table["분류코드"]=classJsons["genreCode2Name"].keys()
         
     # 행(장르), 열(악기)별로 total 값 구하기
-    inst_wise_total = table.drop(["대분류","소분류(Genre)","분류코드"],axis=1).sum(axis=0, skipna=True)
+    inst_wise_total = table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=0, skipna=True)
     table.loc['total'] = inst_wise_total
-    genre_wise_total = table.drop(["대분류","소분류(Genre)","분류코드"],axis=1).sum(axis=1, skipna=True).astype('int16')
+    genre_wise_total = table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=1, skipna=True).astype('int16')
     table['total'] = genre_wise_total
 
     TOTAL = genre_wise_total["total"]  # 전체 total
@@ -95,17 +96,16 @@ def update_table(
     print(TOTAL)
     inst_wise_ratio = inst_wise_total/TOTAL*100
     inst_wise_ratio =inst_wise_ratio.astype(float).round(decimals=2)
-    # inst_wise_ratio = np.around(inst_wise_ratio.values.astype(np.float32),decimals=2)
     table.loc['ratio(%)'] = inst_wise_ratio
     genre_wise_ratio = genre_wise_total[:-1]/TOTAL*100
     genre_wise_ratio = genre_wise_ratio.astype(float).round(decimals=2)
     table['ratio(%)'] = genre_wise_ratio
 
     # 열 옮기기
-    for c in ["분류코드","소분류(Genre)","대분류"]:
+    for c in ["분류코드","소분류(Genre)","중분류","대분류"]:
         table.insert(0,c,table.pop(c))
 
-    table=table.set_index(["대분류","소분류(Genre)"])
+    table=table.set_index(["대분류","중분류","소분류(Genre)"])
 
     ################################################################################
     # define util functions
@@ -122,7 +122,7 @@ def update_table(
 
     ################################################################################
     # 악기별 통계 테이블 만들기
-    inst_stat = pd.DataFrame(columns=["대분류", "개수(대분류)", "ratio(%)(대분류)", "소분류",
+    inst_stat = pd.DataFrame(columns=["중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류",
                              "개수(소분류)", "ratio(%)(소분류)", "악기", "Code", "개수", "ratio(%)"], index=inst_cd)
     # M stands for Major class of instrument
     # m stands for minor class of instrument
@@ -137,29 +137,35 @@ def update_table(
         inst_stat["개수(소분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
     inst_stat["ratio(%)(소분류)"] = (inst_stat["개수(소분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
-    inst_stat = __map_minor2major(inst_stat, "Code", "대분류", classJsons["instCode2Major"])
+    inst_stat = __map_minor2major(inst_stat, "Code", "중분류", classJsons["instCode2Major"])
     indices = [0, 5, 12, 24, 27]
     for i in range(len(indices)-1):
-        inst_stat["개수(대분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
-    inst_stat["ratio(%)(대분류)"] = (inst_stat["개수(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+        inst_stat["개수(중분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
+    inst_stat["ratio(%)(중분류)"] = (inst_stat["개수(중분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
-    inst_stat = inst_stat.set_index(["대분류", "개수(대분류)", "ratio(%)(대분류)", "소분류", "개수(소분류)", "ratio(%)(소분류)", "악기"])
+    inst_stat = inst_stat.set_index(["중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류", "개수(소분류)", "ratio(%)(소분류)", "악기"])
 
     ################################################################################
     # 장르별 통계 테이블 만들기
-    genre_stat = pd.DataFrame(columns=["대분류", "개수(대분류)", "ratio(%)(대분류)", "소분류", "Code", "개수", "ratio(%)"], index=genre_cd)
+    genre_stat = pd.DataFrame(columns=["대분류", "개수(대분류)", "ratio(%)(대분류)", "중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류", "Code", "개수", "ratio(%)"], index=genre_cd)
     genre_stat["Code"] = genre_cd
     genre_stat["소분류"] = genre_nm
     genre_stat["개수"] = genre_wise_total
     genre_stat["ratio(%)"] = genre_wise_ratio
 
-    genre_stat = __map_minor2major(genre_stat, "Code", "대분류", classJsons["genreCode2Major"])
+    genre_stat = __map_minor2major(genre_stat, "Code", "중분류", classJsons["genreCode2Minor"])
     indices = [0, 11, 19, 33, 35, 38]
+    for i in range(len(indices)-1):
+        genre_stat["개수(중분류)"][indices[i]:indices[i+1]] = genre_stat["개수"][indices[i]:indices[i+1]].sum()
+    genre_stat["ratio(%)(중분류)"] = (genre_stat["개수(중분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    genre_stat = __map_minor2major(genre_stat, "Code", "대분류", classJsons["genreCode2Major"])
+    indices = [0, 33, 38]
     for i in range(len(indices)-1):
         genre_stat["개수(대분류)"][indices[i]:indices[i+1]] = genre_stat["개수"][indices[i]:indices[i+1]].sum()
     genre_stat["ratio(%)(대분류)"] = (genre_stat["개수(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
-    genre_stat = genre_stat.set_index(["대분류", "개수(대분류)", "ratio(%)(대분류)", "소분류"])
+    genre_stat = genre_stat.set_index(["대분류", "개수(대분류)","ratio(%)(대분류)", "중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류"])
     ###################################################################################
     # save
     if excel_path:

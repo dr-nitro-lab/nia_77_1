@@ -1,7 +1,8 @@
 import json
 from pathlib import Path
-from typing import Dict, Set, List, Any
+from typing import Dict, Set, List, Any, Tuple
 import os
+
 
 
 def print_json(json_dict): return print(
@@ -25,32 +26,33 @@ def get_keys_recursively(json_dict: dict) -> Set:
 
 
 def compare_keys_recursively(
-    src_json: dict,
-    dst_json: dict,
-    not_essential_keys: set
+    src_json: Dict,
+    dst_json: Dict,
+    not_essential_keys: Set,
+    i : int =0
 ) -> bool:
-
     for key, val in src_json.items():
-        if isinstance(val, dict):
+        # print(key)
+        if isinstance(val, Dict):
             try:
                 if not compare_keys_recursively(val, dst_json[key], not_essential_keys):
                     return False
             except KeyError:
                 print(f'비교대상인 json 파일에 "{key}"라는 key는 존재하지 않는다.')
                 return False
-        elif isinstance(val, list):
+        elif isinstance(val, List) or isinstance(val, Tuple):
             for dict_obj in val:
                 if not compare_keys_recursively(val[0], dict_obj, not_essential_keys):
                     return False
             for dict_obj in dst_json[key]:
                 if not compare_keys_recursively(val[0], dict_obj, not_essential_keys):
                     return False
-        else:
-            raise ValueError(
-                "Input object is neither Dict nor List. Check type of object!!")
+        # else:
+        #     raise ValueError(
+        #         f"Input object is neither Dict nor List. Check type of object!! \n {val}")
 
-    src_json_keys = set(src_json.keys())-not_essential_keys
-    dst_json_keys = set(dst_json.keys())-not_essential_keys
+    src_json_keys = set(src_json.keys())-set(not_essential_keys)
+    dst_json_keys = set(dst_json.keys())-set(not_essential_keys)
 
     return src_json_keys == dst_json_keys
 
@@ -99,7 +101,30 @@ def getVal(inp: Any, json_path: Dict):
 
 
 if __name__ == "__main__":
-    swapKeyVal(src_path="classJson/instMinor2Name.json",
-               dst_path="classJson/instMinor2Name.json")
-    swapKeyVal(src_path="classJson/instMinor2Name.json",
-               dst_path="classJson/instName2Minor.json")
+    # STD_JSON = "C:/Users/KSW/Desktop/Projects/학부연구생/220924/AP_C01_00001.json"
+    # JSON_DIR = "C:/Users/KSW/Desktop/Projects/학부연구생/220924"
+
+    # NOT_ESSENTIAL_KEYS = {
+    #     "uuid", "index",
+    #     "annotation_name", "annotation_parent",
+    #     # "annotation_ID",
+    #     # "annotation_category",
+    #     # "start_time",
+    #     # "end_time",
+    #     # "annotation_code"
+    # }
+
+    # std_json_path = Path(STD_JSON)
+    # std_json = loadjson(std_json_path)
+
+
+    # # for json_filename, json_dict in json2list(JSON_DIR).items():
+    # #     if not compare_keys_recursively(src_json=std_json, dst_json=json_dict,not_essential_keys=NOT_ESSENTIAL_KEYS):
+    # #         print(json_filename)
+
+    # CMP_JSON = "C:/Users/KSW/Desktop/Projects/학부연구생/220924/AP_E04_00107.json"
+    # cmp_json_path = Path(CMP_JSON)
+    # cmp_json = loadjson(cmp_json_path)
+    # print(compare_keys_recursively(std_json, cmp_json, NOT_ESSENTIAL_KEYS))
+    lst = json2list("classJson")
+    print(lst)
