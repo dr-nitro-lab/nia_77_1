@@ -76,7 +76,7 @@ def update_table(
                 classJsons["instCode2Name"].keys()):
         idx.append((M,m,n,c))
 
-    table.columns = pd.MultiIndex.from_tuples(idx, names=["중분류","소분류","악기","악기코드"])
+    table.columns = pd.MultiIndex.from_tuples(idx, names=["대분류","중분류","악기","소분류_코드"])
 
     # Row Multi Index 생성
     table["대분류"]=classJsons["genreCode2Major"].values()
@@ -122,28 +122,28 @@ def update_table(
 
     ################################################################################
     # 악기별 통계 테이블 만들기
-    inst_stat = pd.DataFrame(columns=["중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류",
-                             "개수(소분류)", "ratio(%)(소분류)", "악기", "Code", "개수", "ratio(%)"], index=inst_cd)
+    inst_stat = pd.DataFrame(columns=["대분류", "개수(대분류)", "ratio(%)(대분류)", "중분류",
+                             "개수(중분류)", "ratio(%)(중분류)", "악기", "소분류_코드", "개수", "ratio(%)"], index=inst_cd)
     # M stands for Major class of instrument
     # m stands for minor class of instrument
     inst_stat["악기"] = inst_nm
-    inst_stat["Code"] = inst_cd
+    inst_stat["소분류_코드"] = inst_cd
     inst_stat["개수"] = inst_wise_total.values
     inst_stat["ratio(%)"] = inst_wise_ratio.values
 
-    inst_stat = __map_minor2major(inst_stat, "Code", "소분류", classJsons["instCode2Minor"])
+    inst_stat = __map_minor2major(inst_stat, "소분류_코드", "중분류", classJsons["instCode2Minor"])
     indices = [0, 3, 5, 9, 12, 21, 24, 27]
-    for i in range(len(indices)-1):
-        inst_stat["개수(소분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
-    inst_stat["ratio(%)(소분류)"] = (inst_stat["개수(소분류)"]/TOTAL*100).astype(float).round(decimals=2)
-
-    inst_stat = __map_minor2major(inst_stat, "Code", "중분류", classJsons["instCode2Major"])
-    indices = [0, 5, 12, 24, 27]
     for i in range(len(indices)-1):
         inst_stat["개수(중분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
     inst_stat["ratio(%)(중분류)"] = (inst_stat["개수(중분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
-    inst_stat = inst_stat.set_index(["중분류", "개수(중분류)", "ratio(%)(중분류)", "소분류", "개수(소분류)", "ratio(%)(소분류)", "악기"])
+    inst_stat = __map_minor2major(inst_stat, "소분류_코드", "대분류", classJsons["instCode2Major"])
+    indices = [0, 5, 12, 24, 27]
+    for i in range(len(indices)-1):
+        inst_stat["개수(대분류)"][indices[i]:indices[i+1]] = inst_stat["개수"][indices[i]:indices[i+1]].sum()
+    inst_stat["ratio(%)(대분류)"] = (inst_stat["개수(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    inst_stat = inst_stat.set_index(["대분류", "개수(대분류)", "ratio(%)(대분류)", "중분류", "개수(중분류)", "ratio(%)(중분류)", "악기"])
 
     ################################################################################
     # 장르별 통계 테이블 만들기
