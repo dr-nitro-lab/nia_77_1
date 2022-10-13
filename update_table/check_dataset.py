@@ -4,7 +4,8 @@ from pathlib import Path
 from argparse import ArgumentParser
 import pandas as pd
 from json_utils import (
-    compare_keys_recursively
+    compare_keys_recursively,
+    loadjson
 )
 
 
@@ -19,8 +20,19 @@ def parse_arg():
     return args
 
 
-def check_missing_files(dataset_path):
+NOT_ESSENTIAL_KEYS = {
+    # "uuid", "index",
+    # "annotation_name", "annotation_parent",
+    # "annotation_ID",
+    # "annotation_category",
+    # "start_time",
+    # "end_time",
+    # "annotation_code"
+}
 
+
+def check_missing_files(dataset_path):
+    
     wav_files = list(dataset_path.glob("*.wav"))
     json_files = list(dataset_path.glob("*.json"))
     mid_files = list(dataset_path.glob("*.mid"))
@@ -55,15 +67,24 @@ def check_missing_files(dataset_path):
     })
 
 
-def check_error_jsons(dataset_path):
-    return pd.DataFrame()
+def check_error_jsons(dataset_path, std_json_path):
+    std_json = loadjson(std_json_path)
+    json_files = list(dataset_path.glob("*.json"))
+    error_json_files = []
+    for json_file in json_files:
+        cmp_json = loadjson(json_file)
+        if not compare_keys_recursively(std_json,cmp_json,NOT_ESSENTIAL_KEYS):
+            error_json_files.append(cmp_json)
+    return pd.DataFrame(error_json_files,columns=["에러파일목록"])
 
 
 if __name__ == "__main__":
     args = parse_arg()
 
+
     missing_table = check_missing_files(Path(args.dataset))
-    error_table = check_error_jsons(Path(args.dataset))
+
+    error_table = check_error_jsons(Path(args.dataset), std_json_path="220924/AP_C01_00001.json")
 
     writer = pd.ExcelWriter(args.excel)
     missing_table.to_excel(writer, sheet_name="누락파일목록")

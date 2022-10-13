@@ -28,17 +28,15 @@ def get_keys_recursively(json_dict: dict) -> Set:
 def compare_keys_recursively(
     src_json: Dict,
     dst_json: Dict,
-    not_essential_keys: Set,
-    i : int =0
+    not_essential_keys: Set
 ) -> bool:
     for key, val in src_json.items():
-        # print(key)
+        # print(key,end='')
         if isinstance(val, Dict):
             try:
                 if not compare_keys_recursively(val, dst_json[key], not_essential_keys):
                     return False
-            except KeyError:
-                print(f'비교대상인 json 파일에 "{key}"라는 key는 존재하지 않는다.')
+            except KeyError(f'비교대상인 json 파일에 "{key}"라는 key는 존재하지 않는다.'):
                 return False
         elif isinstance(val, List) or isinstance(val, Tuple):
             for dict_obj in val:
@@ -101,30 +99,31 @@ def getVal(inp: Any, json_path: Dict):
 
 
 if __name__ == "__main__":
-    # STD_JSON = "C:/Users/KSW/Desktop/Projects/학부연구생/220924/AP_C01_00001.json"
-    # JSON_DIR = "C:/Users/KSW/Desktop/Projects/학부연구생/220924"
+    STD_JSON = "./220924/AP_C01_00001.json"
+    JSON_DIR = "./220924"
 
-    # NOT_ESSENTIAL_KEYS = {
-    #     "uuid", "index",
-    #     "annotation_name", "annotation_parent",
-    #     # "annotation_ID",
-    #     # "annotation_category",
-    #     # "start_time",
-    #     # "end_time",
-    #     # "annotation_code"
-    # }
+    NOT_ESSENTIAL_KEYS = {
+        # "uuid", "index",
+        # "annotation_name", "annotation_parent",
+        # "annotation_ID",
+        # "annotation_category",
+        # "start_time",
+        # "end_time",
+        # "annotation_code"
+    }
 
-    # std_json_path = Path(STD_JSON)
-    # std_json = loadjson(std_json_path)
+    std_json_path = Path(STD_JSON)
+    std_json = loadjson(std_json_path)
 
 
-    # # for json_filename, json_dict in json2list(JSON_DIR).items():
-    # #     if not compare_keys_recursively(src_json=std_json, dst_json=json_dict,not_essential_keys=NOT_ESSENTIAL_KEYS):
-    # #         print(json_filename)
+    for json_filename, json_dict in json2list(JSON_DIR).items():
+        if not compare_keys_recursively(src_json=std_json, dst_json=json_dict, not_essential_keys=NOT_ESSENTIAL_KEYS):
+            print(json_filename)
 
-    # CMP_JSON = "C:/Users/KSW/Desktop/Projects/학부연구생/220924/AP_E04_00107.json"
+    # CMP_JSON = "./220924/AP_E04_00107.json"
     # cmp_json_path = Path(CMP_JSON)
     # cmp_json = loadjson(cmp_json_path)
     # print(compare_keys_recursively(std_json, cmp_json, NOT_ESSENTIAL_KEYS))
-    lst = json2list("classJson")
-    print(lst)
+
+    # lst = json2list("classJson")
+    # print(lst)
