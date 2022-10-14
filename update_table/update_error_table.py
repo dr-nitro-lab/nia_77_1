@@ -14,8 +14,8 @@ def parse_arg():
                             "2. metadata 형식에 어긋나는 json파일 검출")
     parser.add_argument("--dataset", '-d', type=str,
                         default='220924')
-    parser.add_argument("--excel", '-e', type=str,
-                        default='220924.error.xlsx')
+    parser.add_argument("--excel_path", '-e', type=str,
+                        default=None)
     args = parser.parse_args()
     return args
 
@@ -86,7 +86,13 @@ if __name__ == "__main__":
 
     error_table = check_error_jsons(Path(args.dataset), std_json_path="220924/AP_C01_00001.json")
 
-    writer = pd.ExcelWriter(args.excel)
+    if args.excel_path is None:
+        dataset_path = Path(args.dataset)
+        excel_path = os.path.join(dataset_path, dataset_path.name+".error.xlsx")
+    else:
+        excel_path = args.excel_path
+    print(excel_path)
+    writer = pd.ExcelWriter(excel_path)
     missing_table.to_excel(writer, sheet_name="누락파일목록")
     error_table.to_excel(writer, sheet_name="에러json파일목록")
     writer.save()
