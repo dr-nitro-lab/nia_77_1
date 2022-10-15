@@ -36,7 +36,9 @@ def compare_keys_recursively(
             try:
                 if not compare_keys_recursively(val, dst_json[key], not_essential_keys):
                     return False
-            except KeyError(f'비교대상인 json 파일에 "{key}"라는 key는 존재하지 않는다.'):
+            except KeyError as e:
+                print(e)
+                print(f'비교대상인 json 파일에 "{key}"라는 key는 존재하지 않는다.')
                 return False
         elif isinstance(val, List) or isinstance(val, Tuple):
             for dict_obj in val:
@@ -97,29 +99,45 @@ def getVal(inp: Any, json_path: Dict):
         inp[i] = jsondict[inp_val]
     return inp
 
+def get_jsons_containing_key(dir, *keys):
+    """
+    dir 폴더 내의 json파일중 key들로 접근했을때 해당하는 필드가 value를 가지고 있는 json의 목록을 반환한다.
+    ex) ["annotation_data_info"]["lyrics"] 로 접근했을 때 값이 있는 json 파일명들을 반환한다는 것.
+    """
+    jsons = json2list(dir)
+    json_has_key = list()
+    for name, j in jsons.items():
+        for k in keys:
+            j = j[k]
+        if not isinstance(j, dict) and not isinstance(j, list) and not isinstance(j,tuple):
+            raise TypeError
+        if len(j)>0:
+            json_has_key.append(name)
+            # print(name)
+    return json_has_key
 
 if __name__ == "__main__":
-    STD_JSON = "./220924/AP_C01_00001.json"
-    JSON_DIR = "./220924"
+    # STD_JSON = "./220924/AP_C01_00001.json"
+    # JSON_DIR = "./220924"
 
-    NOT_ESSENTIAL_KEYS = {
-        # "uuid", "index",
-        # "annotation_name", "annotation_parent",
-        # "annotation_ID",
-        # "annotation_category",
-        # "start_time",
-        # "end_time",
-        # "annotation_code"
-    }
+    # NOT_ESSENTIAL_KEYS = {
+    #     # "uuid", "index",
+    #     # "annotation_name", "annotation_parent",
+    #     # "annotation_ID",
+    #     # "annotation_category",
+    #     # "start_time",
+    #     # "end_time",
+    #     # "annotation_code"
+    # }
 
-    std_json_path = Path(STD_JSON)
-    std_json = loadjson(std_json_path)
+    # std_json_path = Path(STD_JSON)
+    # std_json = loadjson(std_json_path)
 
 
-    for json_filename, json_dict in json2list(JSON_DIR).items():
-        if not compare_keys_recursively(src_json=std_json, dst_json=json_dict, not_essential_keys=NOT_ESSENTIAL_KEYS):
-            print(json_filename)
-
+    # for json_filename, json_dict in json2list(JSON_DIR).items():
+    #     if not compare_keys_recursively(src_json=std_json, dst_json=json_dict, not_essential_keys=NOT_ESSENTIAL_KEYS):
+    #         print(json_filename)
+    #######################################################################
     # CMP_JSON = "./220924/AP_E04_00107.json"
     # cmp_json_path = Path(CMP_JSON)
     # cmp_json = loadjson(cmp_json_path)
@@ -127,3 +145,5 @@ if __name__ == "__main__":
 
     # lst = json2list("classJson")
     # print(lst)
+
+    get_jsons_containing_key("D:\\NIA_77_1\\221011", "annotation_data_info", "lyrics")

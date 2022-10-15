@@ -11,12 +11,11 @@ import wave
 
 from json_utils import json2list
 
-# AP_C11_01549.json 파일 누락
 
 
 def arg_parser():
     parser = ArgumentParser()
-    parser.add_argument("--dataset", "-d", type=str, default="220924")
+    parser.add_argument("--dataset", "-d", type=str, default="D:\\NIA_77_1\\221011")
     parser.add_argument("--cls_json", "-c", type=str, default="classJson")
     parser.add_argument("--excel_path", "-e", type=str, default=None)
 
@@ -39,6 +38,7 @@ def update_table(config):
         excel_path = os.path.join(config.dataset, Path(config.dataset).name + '.time.xlsx')
     else:
         excel_path = config.excel_path
+    print(excel_path)
 
     # load JSONs
     genre_cd = classJsons["genreCode2Name"].keys()
@@ -69,6 +69,10 @@ def update_table(config):
 
         except EOFError:
             print(f"{wav_filepath} is cannot readable.")
+            continue
+
+        except KeyError as k:
+            print(f"{json_filename} don't have key '{k}'")
             continue
 
         # 현재는 "instrument_cd" 또는 "main_instrmt_cd" 둘 중 하나만 채워져 있음을 반영

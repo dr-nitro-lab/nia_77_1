@@ -7,12 +7,11 @@ import numpy as np
 
 from json_utils import json2list
 
-# AP_C11_01549.json 파일 누락
 
 
 def arg_parser():
     parser = ArgumentParser()
-    parser.add_argument("--dataset", "-d", type=str, default="220924")
+    parser.add_argument("--dataset", "-d", type=str, default="D:\\NIA_77_1\\221011")
     parser.add_argument("--cls_json", "-c", type=str, default="classJson")
     parser.add_argument("--excel_path", "-e", type=str, default=None)
 
@@ -56,7 +55,8 @@ def update_table(config):
             inst = json_dict["music_type_info"]["instrument_cd"]
             main_inst = json_dict["music_type_info"]["main_instrmt_cd"]
 
-        except KeyError(f"{json_filename}의 키는 다른 json파일들의 key들과 다르다."):
+        except KeyError:
+            print(f"{json_filename}의 키는 다른 json파일들의 key들과 다르다.")
             continue  # do something when wrong key detected!!
 
         # 현재는 "instrument_cd" 또는 "main_instrmt_cd" 둘 중 하나만 채워져 있음을 반영

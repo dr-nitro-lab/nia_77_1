@@ -13,22 +13,21 @@ def parse_arg():
     parser = ArgumentParser("1. 같은 이름의 세가지 파일 [.wav, .json., .mid]이 한 세트를 이루고 있는지 확인.\n"
                             "2. metadata 형식에 어긋나는 json파일 검출")
     parser.add_argument("--dataset", '-d', type=str,
-                        default='220924')
+                        default='D:\\NIA_77_1\\221011')
     parser.add_argument("--excel_path", '-e', type=str,
                         default=None)
+    parser.add_argument("--std",'-s',type=str, default="D:\\NIA_77_1\\221011\\AP_C11_01566.json")
     args = parser.parse_args()
     return args
 
 
-NOT_ESSENTIAL_KEYS = {
-    # "uuid", "index",
-    # "annotation_name", "annotation_parent",
-    # "annotation_ID",
-    # "annotation_category",
-    # "start_time",
-    # "end_time",
-    # "annotation_code"
-}
+NOT_ESSENTIAL_KEYS = set({
+    # "org_file_nm", # in ["music_source_info"]
+    "index", # in ["annotation_data_info"]["lyrics"]
+    "uuid", # in ["annotation_data_info"]["lyrics"]
+    "annotation_parent", # in ["annotation_data_info"]["single_tonguing_cd"]
+    "annotation_name" # in ["annotation_data_info"]["single_tonguing_cd"]
+})
 
 
 def check_missing_files(dataset_path):
@@ -74,7 +73,9 @@ def check_error_jsons(dataset_path, std_json_path):
     for json_file in json_files:
         cmp_json = loadjson(json_file)
         if not compare_keys_recursively(std_json,cmp_json,NOT_ESSENTIAL_KEYS):
-            error_json_files.append(cmp_json)
+            error_json_files.append(json_file.name)
+
+    
     return pd.DataFrame(error_json_files,columns=["에러파일목록"])
 
 
@@ -84,11 +85,11 @@ if __name__ == "__main__":
 
     missing_table = check_missing_files(Path(args.dataset))
 
-    error_table = check_error_jsons(Path(args.dataset), std_json_path="220924/AP_C01_00001.json")
+    error_table = check_error_jsons(Path(args.dataset), std_json_path=args.std)
 
     if args.excel_path is None:
         dataset_path = Path(args.dataset)
-        excel_path = os.path.join(dataset_path, dataset_path.name+".error.xlsx")
+        excel_path = os.path.join(args.dataset, dataset_path.name+".error.xlsx")
     else:
         excel_path = args.excel_path
     print(excel_path)
