@@ -169,4 +169,5 @@ AP_F02_00263.wav
 .vscode/
 
 # testing
-check_integrity.ipynb
+# check_integrity.ipynb
+comment.txt
