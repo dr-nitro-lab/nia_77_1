@@ -24,3 +24,17 @@ STD_JSON = os.path.join(DATASET_DIR, "AP_C11_01566.json")
 #### 2. error, count, time 테이블을 생성하기 위해 
 - Windows에서 실행할 경우 update_table.bat을 실행시킨다.
 - Linux 또는 git bash 에서 실행할 경우에는 update_table.sh를 실행시킨다.
+
+## 실행 결과 및 생성된 테이블(*.xlsx) 보는법
+### error table
+- 누락 파일 목록 : 하나의 데이터에 대해 wav, json, mid 파일이 모두 있어야 누락되지 않은 것으로 간주한다. 밑의 예시는 AP_F02_00332.wav, AP_F02_00332.mid 는 존재하지만 AP_F02_00332.json은 존재하지 않는 경우
+
+![image](https://user-images.githubusercontent.com/54995090/197339674-27db3564-e881-4227-8491-678882d9e863.png)
+
+- 에러 json파일 목록 : key 값이 다른 json파일들의 형식과 다른 경우. check_integrity.ipynb 에서 확인한 결과와 동일하다.
+
+![image](https://user-images.githubusercontent.com/54995090/197339682-296fa8f2-8899-4a54-9d81-8dafb82caada.png)
+
+### time table
+- wav 파일이 열리지 않는 경우, 터미널에 메시지를 출력하도록 하였다. 
+- 따라서 집계된 결과는 wav파일이 열리지 않는 경우를 제외한 것이다.
