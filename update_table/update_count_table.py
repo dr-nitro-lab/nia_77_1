@@ -7,19 +7,12 @@ import numpy as np
 
 from json_utils import json2list
 
+from pathlib import Path
+import os
+import cfg
 
 
-def arg_parser():
-    parser = ArgumentParser()
-    parser.add_argument("--dataset", "-d", type=str, default="D:\\NIA_77_1\\221011")
-    parser.add_argument("--cls_json", "-c", type=str, default="classJson")
-    parser.add_argument("--excel_path", "-e", type=str, default=None)
-
-    config = parser.parse_args()
-    return config
-
-
-def update_table(config):
+def update_table():
     """
     inputs
     --------------
@@ -28,12 +21,9 @@ def update_table(config):
     excel_path :    if not None, excel_path에 excel 파일 저장
     """
 
-    metadatas = json2list(config.dataset)
-    classJsons = json2list(config.cls_json)
-    if config.excel_path is None:
-        excel_path = os.path.join(config.dataset, Path(config.dataset).name + '.count.xlsx')
-    else:
-        excel_path = config.excel_path
+    metadatas = json2list(cfg.DATASET_DIR)
+    classJsons = json2list(cfg.CONFIG_JSONS)
+    excel_path = os.path.join(cfg.DATASET_DIR, Path(cfg.DATASET_DIR).name + '.count.xlsx')
 
     # load JSONs
     genre_cd = classJsons["genreCode2Name"].keys()
@@ -180,8 +170,4 @@ def update_table(config):
 
 
 if __name__ == "__main__":
-    import os
-    from pathlib import Path
-    config = arg_parser()
-
-    update_table(config)
+    update_table()

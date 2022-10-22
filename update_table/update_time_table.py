@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 from typing import Dict, Optional
 import os, glob
+from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -11,19 +12,11 @@ import wave
 
 from json_utils import json2list
 
+import cfg
 
 
-def arg_parser():
-    parser = ArgumentParser()
-    parser.add_argument("--dataset", "-d", type=str, default="D:\\NIA_77_1\\221011")
-    parser.add_argument("--cls_json", "-c", type=str, default="classJson")
-    parser.add_argument("--excel_path", "-e", type=str, default=None)
 
-    config = parser.parse_args()
-    return config
-
-
-def update_table(config):
+def update_table():
     """
     inputs
     --------------
@@ -32,12 +25,9 @@ def update_table(config):
     excel_path :    if not None, excel_path에 excel 파일 저장
     """
 
-    metadatas = json2list(config.dataset)
-    classJsons = json2list(config.cls_json)
-    if config.excel_path is None:
-        excel_path = os.path.join(config.dataset, Path(config.dataset).name + '.time.xlsx')
-    else:
-        excel_path = config.excel_path
+    metadatas = json2list(cfg.DATASET_DIR)
+    classJsons = json2list(cfg.CONFIG_JSONS)
+    excel_path = os.path.join(cfg.DATASET_DIR, Path(cfg.DATASET_DIR).name + '.time.xlsx')
     print(excel_path)
 
     # load JSONs
@@ -57,7 +47,7 @@ def update_table(config):
     for json_filename, json_dict in metadatas.items():
         try:
             wav_filename = json_dict["music_source_info"]["music_src_nm"]+'.'+json_dict["music_source_info"]["music_src_fmt"]
-            wav_filepath = os.path.join(config.dataset, wav_filename)
+            wav_filepath = os.path.join(cfg.DATASET_DIR, wav_filename)
             genre = json_dict["music_type_info"]["music_genre_cd"]
             inst = json_dict["music_type_info"]["instrument_cd"]
             main_inst = json_dict["music_type_info"]["main_instrmt_cd"]
@@ -198,9 +188,5 @@ def update_table(config):
 
 
 if __name__ == "__main__":
-    import os
-    from pathlib import Path
-    config = arg_parser()
 
-
-    update_table(config)
+    update_table()
