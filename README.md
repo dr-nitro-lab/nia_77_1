@@ -24,6 +24,7 @@ STD_JSON = os.path.join(DATASET_DIR, "AP_C11_01566.json")
 #### 2. error, count, time 테이블을 생성하기 위해 
 - Windows에서 실행할 경우 update_table.bat을 실행시킨다.
 - Linux 또는 git bash 에서 실행할 경우에는 update_table.sh를 실행시킨다.
+- 또는 update_time_table.py, update_error_table.py, update_count_table.py 를 각각 실행시켜도 된다.
 
 ## 실행 결과 및 생성된 테이블(*.xlsx) 보는법
 ### error table
@@ -38,3 +39,7 @@ STD_JSON = os.path.join(DATASET_DIR, "AP_C11_01566.json")
 ### time table
 - wav 파일이 열리지 않는 경우, 터미널에 메시지를 출력하도록 하였다. 
 - 따라서 집계된 결과는 wav파일이 열리지 않는 경우를 제외한 것이다.
+
+![image](https://user-images.githubusercontent.com/54995090/197447272-97c6afc8-14d0-4318-a9c0-bbaea3606ba2.png)
+
+- 위에서 cannot readable은 wav 파일이 읽히지 않는 경우이고, KeyError에 의한 오류메시지는 별도로 표시하였다. json 형식이 다른 파일에서 KeyError가 발생한다. 
