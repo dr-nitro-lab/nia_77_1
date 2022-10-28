@@ -173,3 +173,7 @@ AP_F02_00263.wav
 comment.txt
 
 221011/
+
+# yaml config
+yaml_utils.py
+config.yaml
