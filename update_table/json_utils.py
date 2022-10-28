@@ -116,34 +116,20 @@ def get_jsons_containing_key(dir, *keys):
             # print(name)
     return json_has_key
 
+def getValuesInList(keys:List,path:str)->List:
+    json_list = json2list(path)
+    val_list = []
+    for json_obj in json_list.values():
+        try:
+            for key in keys:
+                json_obj = json_obj[key]
+            val_list.append(json_obj)
+        except KeyError as k:
+            try:
+                print(f"{k}, \nkey {key} doesn't exist in {json_obj['music_source_info']['music_src_nm']}")
+            except Exception as e:
+                print(e)
+    return val_list
+
 if __name__ == "__main__":
-    # STD_JSON = "./220924/AP_C01_00001.json"
-    # JSON_DIR = "./220924"
-
-    # NOT_ESSENTIAL_KEYS = {
-    #     # "uuid", "index",
-    #     # "annotation_name", "annotation_parent",
-    #     # "annotation_ID",
-    #     # "annotation_category",
-    #     # "start_time",
-    #     # "end_time",
-    #     # "annotation_code"
-    # }
-
-    # std_json_path = Path(STD_JSON)
-    # std_json = loadjson(std_json_path)
-
-
-    # for json_filename, json_dict in json2list(JSON_DIR).items():
-    #     if not compare_keys_recursively(src_json=std_json, dst_json=json_dict, not_essential_keys=NOT_ESSENTIAL_KEYS):
-    #         print(json_filename)
-    #######################################################################
-    # CMP_JSON = "./220924/AP_E04_00107.json"
-    # cmp_json_path = Path(CMP_JSON)
-    # cmp_json = loadjson(cmp_json_path)
-    # print(compare_keys_recursively(std_json, cmp_json, NOT_ESSENTIAL_KEYS))
-
-    # lst = json2list("classJson")
-    # print(lst)
-
-    get_jsons_containing_key("D:\\NIA_77_1\\221011", "annotation_data_info", "lyrics")
+    print(getValuesInList(["annotation_data_info", "tempo", "annotation_code"],"221011"))
