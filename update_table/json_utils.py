@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, Set, List, Any, Tuple
+from typing import Dict, Set, List, Any, Tuple, Union
 import os
 
 
@@ -76,11 +76,13 @@ def json2list(path) -> Dict[str, Dict]:
     return json_list_dict
 
 
-def swapKeyVal(src_path: str, dst_path: str):
+def swapKeyVal(src_path: str, dst_path: Union[str,None] = None):
     json_obj: dict = loadjson(src_path)
     new_json = {val: key for key, val in json_obj.items()}
     if dst_path:
         writejson(dst_path, new_json)
+    else:
+        writejson(src_path, new_json)
     return new_json
 
 
@@ -132,4 +134,4 @@ def getValuesInList(keys:List,path:str)->List:
     return val_list
 
 if __name__ == "__main__":
-    print(getValuesInList(["annotation_data_info", "tempo", "annotation_code"],"221011"))
+    swapKeyVal("classJson/modeCode2Major.json")
