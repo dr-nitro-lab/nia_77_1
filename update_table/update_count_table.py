@@ -32,9 +32,18 @@ def update_table():
     inst_cd = classJsons["instCode2Name"].keys()
     inst_nm = classJsons["instCode2Name"].values()
 
+    beat_cd = classJsons["beatCode2Name"].keys()
+    beat_nm = classJsons["beatCode2Name"].values()
+
+    mode_cd = classJsons["modeCode2Name"].keys()
+    mode_nm = classJsons["modeCode2Name"].values()
+
     # define main DataFrame
     # col이 악기 코드, row가 장르 코드인 DataFrame 생성
-    table = pd.DataFrame(columns=inst_cd, index=genre_cd)
+    total_table = pd.DataFrame(columns=inst_cd, index=genre_cd)
+    beat_stat = pd.DataFrame(0,columns=["소분류", "Code", "count", "ratio(%)"], index=beat_cd)
+    mode_stat = pd.DataFrame(0,columns=["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류", "Code", "count", "ratio(%)"], index=mode_cd)
+    mode_stat["대분류"] = classJsons["modeCode2Major"].values()
 
 
     ###########################################################################################
@@ -44,6 +53,8 @@ def update_table():
             genre = json_dict["music_type_info"]["music_genre_cd"]
             inst = json_dict["music_type_info"]["instrument_cd"]
             main_inst = json_dict["music_type_info"]["main_instrmt_cd"]
+            beat = json_dict["annotation_data_info"]["gukak_beat_cd"]
+            mode = json_dict["annotation_data_info"]["mode_cd"]
 
         except KeyError:
             print(f"{json_filename}의 키는 다른 json파일들의 key들과 다르다.")
@@ -51,15 +62,25 @@ def update_table():
 
         # 현재는 "instrument_cd" 또는 "main_instrmt_cd" 둘 중 하나만 채워져 있음을 반영
         if inst != "":
-            if pd.isnull(table.loc[genre, inst]):
-                table[inst][genre] = 1
+            if pd.isnull(total_table.loc[genre, inst]):
+                total_table[inst][genre] = 1
             else:
-                table[inst][genre] += 1
+                total_table[inst][genre] += 1
         elif main_inst != "":
-            if pd.isnull(table.loc[genre, main_inst]):
-                table[main_inst][genre] = 1
+            if pd.isnull(total_table.loc[genre, main_inst]):
+                total_table[main_inst][genre] = 1
             else:
-                table[main_inst][genre] += 1
+                total_table[main_inst][genre] += 1
+        
+        try:
+            beat_stat["count"][beat]+=1
+        except KeyError as k:
+            print(f"KeyError has occured because '{json_filename}' has beat key {k}")
+        try:
+            mode_stat["count"][mode]+=1
+        except KeyError as k:
+            print(f"KeyError has occured because '{json_filename}' has mode key {k}")
+
 
     # Column Multi Index 생성
     idx=[]
@@ -69,19 +90,19 @@ def update_table():
                 classJsons["instCode2Name"].keys()):
         idx.append((M,m,n,c))
 
-    table.columns = pd.MultiIndex.from_tuples(idx, names=["대분류","중분류","악기","소분류_코드"])
+    total_table.columns = pd.MultiIndex.from_tuples(idx, names=["대분류","중분류","악기","소분류_코드"])
 
     # Row Multi Index 생성
-    table["대분류"]=classJsons["genreCode2Major"].values()
-    table["중분류"]=classJsons["genreCode2Minor"].values()
-    table["소분류(Genre)"]=classJsons["genreCode2Name"].values()
-    table["분류코드"]=classJsons["genreCode2Name"].keys()
+    total_table["대분류"]=classJsons["genreCode2Major"].values()
+    total_table["중분류"]=classJsons["genreCode2Minor"].values()
+    total_table["소분류(Genre)"]=classJsons["genreCode2Name"].values()
+    total_table["분류코드"]=classJsons["genreCode2Name"].keys()
         
     # 행(장르), 열(악기)별로 total 값 구하기
-    inst_wise_total = table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=0, skipna=True)
-    table.loc['total'] = inst_wise_total
-    genre_wise_total = table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=1, skipna=True).astype('int16')
-    table['total'] = genre_wise_total
+    inst_wise_total = total_table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=0, skipna=True)
+    total_table.loc['total'] = inst_wise_total
+    genre_wise_total = total_table.drop(["대분류","중분류","소분류(Genre)","분류코드"],axis=1).sum(axis=1, skipna=True).astype('int16')
+    total_table['total'] = genre_wise_total
 
     TOTAL = genre_wise_total["total"]  # 전체 total
 
@@ -89,16 +110,16 @@ def update_table():
     print(TOTAL)
     inst_wise_ratio = inst_wise_total/TOTAL*100
     inst_wise_ratio =inst_wise_ratio.astype(float).round(decimals=2)
-    table.loc['ratio(%)'] = inst_wise_ratio
+    total_table.loc['ratio(%)'] = inst_wise_ratio
     genre_wise_ratio = genre_wise_total[:-1]/TOTAL*100
     genre_wise_ratio = genre_wise_ratio.astype(float).round(decimals=2)
-    table['ratio(%)'] = genre_wise_ratio
+    total_table['ratio(%)'] = genre_wise_ratio
 
     # 열 옮기기
     for c in ["분류코드","소분류(Genre)","중분류","대분류"]:
-        table.insert(0,c,table.pop(c))
+        total_table.insert(0,c,total_table.pop(c))
 
-    table=table.set_index(["대분류","중분류","소분류(Genre)"])
+    total_table=total_table.set_index(["대분류","중분류","소분류(Genre)"])
 
     ################################################################################
     # define util functions
@@ -159,13 +180,36 @@ def update_table():
     genre_stat["ratio(%)(대분류)"] = (genre_stat["count(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
     genre_stat = genre_stat.set_index(["대분류", "count(대분류)","ratio(%)(대분류)", "중분류", "count(중분류)", "ratio(%)(중분류)", "소분류"])
+    ################################################################################
+    # 장단별 통계 테이블 만들기
+    beat_stat["Code"] = beat_cd
+    beat_stat["소분류"] = beat_nm
+    beat_stat["ratio(%)"] = (beat_stat["count"]/sum(beat_stat["count"])*100).astype(float).round(decimals=2)
+
+    beat_stat = beat_stat.set_index(["소분류", "Code"])
+    ################################################################################
+    # 음조직별 통계 테이블 만들기
+    # mode_stat = pd.DataFrame(columns=["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류", "Code", "count", "ratio(%)"], index=mode_cd)
+    mode_stat["Code"] = mode_cd
+    mode_stat["소분류"] = mode_nm
+    mode_stat["ratio(%)"] = (mode_stat["count"]/sum(mode_stat["count"])*100).astype(float).round(decimals=2)
+
+    mode_stat = __map_minor2major(mode_stat, "Code", "대분류", classJsons["modeCode2Major"])
+    indices = [0, 9, 20]
+    for i in range(len(indices)-1):
+        mode_stat["count(대분류)"][indices[i]:indices[i+1]] = mode_stat["count"][indices[i]:indices[i+1]].sum()
+    mode_stat["ratio(%)(대분류)"] = (mode_stat["count(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    mode_stat = mode_stat.set_index(["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류"])
     ###################################################################################
     # save
     if excel_path:
         writer = pd.ExcelWriter(excel_path, engine='xlsxwriter')
+        total_table.to_excel(writer, sheet_name="장르악기분포집계")
         inst_stat.to_excel(writer, sheet_name="악기분포집계")
         genre_stat.to_excel(writer, sheet_name="장르분포집계")
-        table.to_excel(writer, sheet_name="장르악기분포집계")
+        beat_stat.to_excel(writer, sheet_name="장단분포집계")
+        mode_stat.to_excel(writer, sheet_name="음조직분포집계")
         writer.save()
 
 
