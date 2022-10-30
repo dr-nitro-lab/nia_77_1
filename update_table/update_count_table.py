@@ -38,13 +38,17 @@ def update_table():
     mode_cd = classJsons["modeCode2Name"].keys()
     mode_nm = classJsons["modeCode2Name"].values()
 
+    singleTonguing_cd = classJsons["singleTonguingCode2Name"].keys()
+    singleTonguing_nm = classJsons["singleTonguingCode2Name"].values()
+
     # define main DataFrame
     # col이 악기 코드, row가 장르 코드인 DataFrame 생성
     total_table = pd.DataFrame(columns=inst_cd, index=genre_cd)
     beat_stat = pd.DataFrame(0,columns=["소분류", "Code", "count", "ratio(%)"], index=beat_cd)
     mode_stat = pd.DataFrame(0,columns=["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류", "Code", "count", "ratio(%)"], index=mode_cd)
     mode_stat["대분류"] = classJsons["modeCode2Major"].values()
-
+    singleTonguing_stat = pd.DataFrame(0,columns=["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류", "Code", "count", "ratio(%)"], index=singleTonguing_cd)
+    singleTonguing_stat["대분류"] = classJsons["singleTonguingCode2Major"].values()
 
     ###########################################################################################
     # Construct main table and calculate main statistics
@@ -55,6 +59,7 @@ def update_table():
             main_inst = json_dict["music_type_info"]["main_instrmt_cd"]
             beat = json_dict["annotation_data_info"]["gukak_beat_cd"]
             mode = json_dict["annotation_data_info"]["mode_cd"]
+            singleTonguings = json_dict["annotation_data_info"]["single_tonguing_cd"]
 
         except KeyError:
             print(f"{json_filename}의 키는 다른 json파일들의 key들과 다르다.")
@@ -75,11 +80,19 @@ def update_table():
         try:
             beat_stat["count"][beat]+=1
         except KeyError as k:
-            print(f"KeyError has occured because '{json_filename}' has beat key {k}")
+            print(f"KeyError has occured because '{json_filename}' has invalid beat code {k}")
+
         try:
             mode_stat["count"][mode]+=1
         except KeyError as k:
-            print(f"KeyError has occured because '{json_filename}' has mode key {k}")
+            if inst[0]!='P':
+                print(f"KeyError has occured because '{json_filename}' has invalid mode code {k}, and has inst code '{inst}'")
+
+        for singleTonguing in singleTonguings:
+            try:
+                singleTonguing_stat["count"][singleTonguing["annotation_code"]]+=1
+            except KeyError as k:
+                print(f"{json_filename}.json has invalid single tonguing code {singleTonguing['annotation_code']}")
 
 
     # Column Multi Index 생성
@@ -189,7 +202,6 @@ def update_table():
     beat_stat = beat_stat.set_index(["소분류", "Code"])
     ################################################################################
     # 음조직별 통계 테이블 만들기
-    # mode_stat = pd.DataFrame(columns=["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류", "Code", "count", "ratio(%)"], index=mode_cd)
     mode_stat["Code"] = mode_cd
     mode_stat["소분류"] = mode_nm
     mode_stat["ratio(%)"] = (mode_stat["count"]/sum(mode_stat["count"])*100).astype(float).round(decimals=2)
@@ -201,6 +213,19 @@ def update_table():
     mode_stat["ratio(%)(대분류)"] = (mode_stat["count(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
 
     mode_stat = mode_stat.set_index(["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류"])
+    ################################################################################
+    # 시김새별 통계 테이블 만들기
+    singleTonguing_stat["Code"] = singleTonguing_cd
+    singleTonguing_stat["소분류"] = singleTonguing_nm
+    singleTonguing_stat["ratio(%)"] = (singleTonguing_stat["count"]/sum(singleTonguing_stat["count"])*100).astype(float).round(decimals=2)
+
+    singleTonguing_stat = __map_minor2major(singleTonguing_stat, "Code", "대분류", classJsons["singleTonguingCode2Major"])
+    indices = [0, 3, 5, 6]
+    for i in range(len(indices)-1):
+        singleTonguing_stat["count(대분류)"][indices[i]:indices[i+1]] = singleTonguing_stat["count"][indices[i]:indices[i+1]].sum()
+    singleTonguing_stat["ratio(%)(대분류)"] = (singleTonguing_stat["count(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    singleTonguing_stat = singleTonguing_stat.set_index(["대분류", "count(대분류)", "ratio(%)(대분류)", "소분류"])
     ###################################################################################
     # save
     if excel_path:
@@ -208,6 +233,7 @@ def update_table():
         total_table.to_excel(writer, sheet_name="장르악기분포집계")
         inst_stat.to_excel(writer, sheet_name="악기분포집계")
         genre_stat.to_excel(writer, sheet_name="장르분포집계")
+        singleTonguing_stat.to_excel(writer, sheet_name="시김새분포집계")
         beat_stat.to_excel(writer, sheet_name="장단분포집계")
         mode_stat.to_excel(writer, sheet_name="음조직분포집계")
         writer.save()

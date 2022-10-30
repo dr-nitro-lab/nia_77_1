@@ -168,6 +168,8 @@ AP_F02_00263.wav
 !beatCode2Name.json
 !modeCode2Major.json
 !modeCode2Name.json
+!singleTonguingCode2Major.json
+!singleTonguingCode2Name.json
 # VS Code
 .vscode/
 
