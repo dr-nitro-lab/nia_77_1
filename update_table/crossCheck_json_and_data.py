@@ -81,6 +81,7 @@ for JSON_FILE in JSON_FILES:
         for msg in midi:
             if msg.type=='set_tempo':
                 tempo_midi = mido.tempo2bpm(msg.tempo)
+                break
     else:
         print(f"{MIDI_FILE} not found!")
         continue

@@ -37,9 +37,23 @@ def update_table():
     inst_cd = classJsons["instCode2Name"].keys()
     inst_nm = classJsons["instCode2Name"].values()
 
+    beat_cd = classJsons["beatCode2Name"].keys()
+    beat_nm = classJsons["beatCode2Name"].values()
+
+    mode_cd = classJsons["modeCode2Name"].keys()
+    mode_nm = classJsons["modeCode2Name"].values()
+
+    singleTonguing_cd = classJsons["singleTonguingCode2Name"].keys()
+    singleTonguing_nm = classJsons["singleTonguingCode2Name"].values()
+
     # define main DataFrame
     # col이 악기 코드, row가 장르 코드인 DataFrame 생성
     table = pd.DataFrame(columns=inst_cd, index=genre_cd)
+    beat_stat = pd.DataFrame(0,columns=["소분류", "Code", "time", "ratio(%)"], index=beat_cd)
+    mode_stat = pd.DataFrame(0,columns=["대분류", "time(대분류)", "ratio(%)(대분류)", "소분류", "Code", "time", "ratio(%)"], index=mode_cd)
+    mode_stat["대분류"] = classJsons["modeCode2Major"].values()
+    singleTonguing_stat = pd.DataFrame(0,columns=["대분류", "time(대분류)", "ratio(%)(대분류)", "소분류", "Code", "time", "ratio(%)"], index=singleTonguing_cd)
+    singleTonguing_stat["대분류"] = classJsons["singleTonguingCode2Major"].values()
 
 
     ###########################################################################################
@@ -50,6 +64,9 @@ def update_table():
             wav_filepath = os.path.join(cfg.DATASET_DIR, wav_filename)
             genre = json_dict["music_type_info"]["music_genre_cd"]
             inst = json_dict["music_type_info"]["instrument_cd"]
+            beat = json_dict["annotation_data_info"]["gukak_beat_cd"]
+            mode = json_dict["annotation_data_info"]["mode_cd"]
+            singleTonguings = json_dict["annotation_data_info"]["single_tonguing_cd"]
             main_inst = json_dict["music_type_info"]["main_instrmt_cd"]
             wav_dur = librosa.get_duration(filename=wav_filepath)
 
@@ -77,6 +94,23 @@ def update_table():
                     table[main_inst][genre] = wav_dur
                 else:
                     table[main_inst][genre] += wav_dur
+
+        try:
+            beat_stat["time"][beat]+=wav_dur
+        except KeyError as k:
+            print(f"KeyError has occured because '{json_filename}' has invalid beat code {k}")
+
+        try:
+            mode_stat["time"][mode]+=wav_dur
+        except KeyError as k:
+            if inst[0]!='P':
+                print(f"KeyError has occured because '{json_filename}' has invalid mode code {k}, and has inst code '{inst}'")
+
+        for singleTonguing in singleTonguings:
+            try:
+                singleTonguing_stat["time"][singleTonguing["annotation_code"]]+=(singleTonguing["end_time"]-singleTonguing["start_time"])
+            except KeyError as k:
+                print(f"{json_filename}.json has invalid single tonguing code {singleTonguing['annotation_code']}")
 
     # Column Multi Index 생성
     idx=[]
@@ -132,7 +166,7 @@ def update_table():
 
     ################################################################################
     # 악기별 통계 테이블 만들기
-    inst_stat = pd.DataFrame(columns=["대분류", "time(대분류)", "ratio(%)(대분류)", "중분류",
+    inst_stat = pd.DataFrame(0,columns=["대분류", "time(대분류)", "ratio(%)(대분류)", "중분류",
                              "time(중분류)", "ratio(%)(중분류)", "악기", "소분류_코드", "time", "ratio(%)"], index=inst_cd)
     # M stands for Major class of instrument
     # m stands for minor class of instrument
@@ -178,12 +212,48 @@ def update_table():
 
     genre_stat = genre_stat.astype({"time(대분류)":"int","time(중분류)":"int","time":"int"})
     genre_stat = genre_stat.set_index(["대분류", "time(대분류)","ratio(%)(대분류)", "중분류", "time(중분류)", "ratio(%)(중분류)", "소분류"])
+    ################################################################################
+    # 장단별 통계 테이블 만들기
+    beat_stat["Code"] = beat_cd
+    beat_stat["소분류"] = beat_nm
+    beat_stat["ratio(%)"] = (beat_stat["time"]/sum(beat_stat["time"])*100).astype(float).round(decimals=2)
+
+    beat_stat = beat_stat.set_index(["소분류", "Code"])
+    ################################################################################
+    # 음조직별 통계 테이블 만들기
+    mode_stat["Code"] = mode_cd
+    mode_stat["소분류"] = mode_nm
+    mode_stat["ratio(%)"] = (mode_stat["time"]/sum(mode_stat["time"])*100).astype(float).round(decimals=2)
+
+    mode_stat = __map_minor2major(mode_stat, "Code", "대분류", classJsons["modeCode2Major"])
+    indices = [0, 9, 20]
+    for i in range(len(indices)-1):
+        mode_stat["time(대분류)"][indices[i]:indices[i+1]] = mode_stat["time"][indices[i]:indices[i+1]].sum()
+    mode_stat["ratio(%)(대분류)"] = (mode_stat["time(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    mode_stat = mode_stat.set_index(["대분류", "time(대분류)", "ratio(%)(대분류)", "소분류"])
+    ################################################################################
+    # 시김새별 통계 테이블 만들기
+    singleTonguing_stat["Code"] = singleTonguing_cd
+    singleTonguing_stat["소분류"] = singleTonguing_nm
+    singleTonguing_stat["ratio(%)"] = (singleTonguing_stat["time"]/sum(singleTonguing_stat["time"])*100).astype(float).round(decimals=2)
+
+    singleTonguing_stat = __map_minor2major(singleTonguing_stat, "Code", "대분류", classJsons["singleTonguingCode2Major"])
+    indices = [0, 3, 5, 6]
+    for i in range(len(indices)-1):
+        singleTonguing_stat["time(대분류)"][indices[i]:indices[i+1]] = singleTonguing_stat["time"][indices[i]:indices[i+1]].sum()
+    singleTonguing_stat["ratio(%)(대분류)"] = (singleTonguing_stat["time(대분류)"]/TOTAL*100).astype(float).round(decimals=2)
+
+    singleTonguing_stat = singleTonguing_stat.set_index(["대분류", "time(대분류)", "ratio(%)(대분류)", "소분류"])
     ###################################################################################
     # save
     writer = pd.ExcelWriter(excel_path, engine='xlsxwriter')
+    table.to_excel(writer, sheet_name="장르악기분포집계")
     inst_stat.to_excel(writer, sheet_name="악기분포집계")
     genre_stat.to_excel(writer, sheet_name="장르분포집계")
-    table.to_excel(writer, sheet_name="장르악기분포집계")
+    singleTonguing_stat.to_excel(writer, sheet_name="시김새분포집계")
+    beat_stat.to_excel(writer, sheet_name="장단분포집계")
+    mode_stat.to_excel(writer, sheet_name="음조직분포집계")
     writer.save()
 
 

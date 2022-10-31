@@ -177,8 +177,8 @@ AP_F02_00263.wav
 # check_integrity.ipynb
 comment.txt
 
-221011/
-
+update_table/221011/
+update_table/221020_1cycle_10p/
 # yaml config
 yaml_utils.py
 config.yaml

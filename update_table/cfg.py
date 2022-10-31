@@ -12,4 +12,4 @@ STD_JSON = os.path.join(DATASET_DIR, "AP_C11_01566.json")
 
 # json과 wav, midi 비교 기준
 DURATION_TOLERANCE = 1 # wav 파일의 실제길이와 json 에 기록된 음원길이 사이의 허용되는 차이
-BPM_TOLERANCE = 1
+BPM_TOLERANCE = 0.1
