@@ -182,3 +182,6 @@ comment.txt
 # yaml config
 yaml_utils.py
 config.yaml
+
+# test code
+test.py
