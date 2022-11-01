@@ -2,7 +2,8 @@ import os
 
 
 # dataset이 있는 directory의 경로
-DATASET_DIR = "./221011"
+# DATASET_DIR = "./221011"
+DATASET_DIR = "./221020_1cycle_10p"
 
 # 분야, 악기 관련 코드에 대한 json파일들이 있는 directory의 경로
 CONFIG_JSONS = "./classJson"
