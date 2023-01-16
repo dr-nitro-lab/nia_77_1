@@ -1,3 +1,9 @@
 [submodule "summary"]
 	path = summary
 	url = https://github.com/dr-nitro-lab/nia_77_1_summary
+[submodule "MGC/genre_221216_docker_project"]
+	path = MGC/genre_221216_docker_project
+	url = https://github.com/pratikshaya/genre_221216_docker_project
+[submodule "MSS/MSS_221118_project"]
+	path = MSS/MSS_221118_project
+	url = https://github.com/pratikshaya/MSS_221118_project
