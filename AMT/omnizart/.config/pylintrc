@@ -1,0 +1,24 @@
+[MASTER]
+# https://gist.github.com/sblask/7302860
+
+ignore=bootstrap_data
+
+[MESSAGES CONTROL]
+disable=C0114,C0116,C0330,R0801
+
+[BASIC]
+good-names=i,j,k,it,_,e,t,r,c,db,h,ii,z,fs
+
+[DESIGN]
+min-public-methods=1
+max-attributes=30
+max-args=25
+max-locals=25
+
+[FORMAT]
+max-line-length=120
+
+[SIMILARITIES]
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes

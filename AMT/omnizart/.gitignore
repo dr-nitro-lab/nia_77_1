@@ -1,0 +1,50 @@
+
+# Temporary files of Vim
+*.swp
+*.swo
+*.sh~
+Thumbs.db*
+
+# Audio files
+*.wav
+*.mp3
+
+# Development cache / data files
+__pycache__/
+.pytest_cache/
+.venv/
+bootstrap_data/
+tf_dataset_experiment/
+htmlcov/
+all_weights/
+.vscode/
+.python-version
+.coverage
+.cookie
+*.code-workspace
+*.pickle
+
+# Transcription results
+*.mid
+*.csv
+*.txt
+
+# Built files
+dist/
+omnizart.egg-info/
+docs/build/
+build/
+
+# Large files
+sample_feature.hdf
+soundfonts.sf2
+
+# Spleeter's models
+pretrained_models/
+
+# Other files
+checkpoints/
+test.sh
+*.ipynb
+*.pptx
+copy_weights_to_dir.py

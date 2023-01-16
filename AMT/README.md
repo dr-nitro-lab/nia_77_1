@@ -1,9 +1,19 @@
 # 자동채보 모델과 사용법 가이드
 
+- 음악을 필사 해주는, “Omniscient Mozart”, Omnizart라는 모델을 이용하여 학습 진행.
+- 학습은 악기 별로 (String, Wind, Vocal) 나누어서 진행.
+- 각 파일별로 feature를 뽑고, 그 feature에 대해서 학습.
+- 각 wav 파일별로 feature를 추출해서 ‘.hdf’ 파일로 저장.
+	Feature의 구성요소:
+	1. Multiplication of spectrum and cepstrum
+	2. Spectrum of the audio.
+	3. Generalized Cepstrum of Spectrum (GCoS)
+	4. Cepstrum of the audio
+	5. Central frequencies to each feature
+-  그 이후에 mid 파일에서 label(정답 음계) 을 추출함. ‘.pickle’ 파일로 저장.
+-  omnizart에서 제공된 piano transcription 모델 (music_piano-v2) 에 각각의 분류별 데이터를 추가 학습시켜 fine-tuning함.
+
 ------
-## Repository
-- link (추후 추가)
--------
 ## Algorithm
 - Algorithm & Model : Omnizart
 - Reference Paper: https://arxiv.org/abs/2106.00497
